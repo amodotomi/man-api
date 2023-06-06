@@ -27,3 +27,5 @@
 # System-specific files
 .DS_Store
 Thumbs.db
+
+.all.log

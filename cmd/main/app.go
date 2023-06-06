@@ -1,8 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"net"
 	"net/http"
+	"os"
+	"path"
+	"path/filepath"
+	"proj/internal/config"
 	"proj/internal/user"
 	"proj/pkg/logging"
 	"time"
@@ -12,22 +17,50 @@ import (
 
 func main() {
 	logger := logging.GetLogger()
-	logger.Info("creating router...")
+	logger.Info("-> creating router...")
 	router := httprouter.New()
 
-	logger.Info("registering user handler...")
+	cfg := config.GetConfig() // cfg === config
+
+	logger.Info("-> registering user handler...")
 	handler := user.NewHandler(logger)
 	handler.Register(router)
 
-	start(router)
+	start(router, cfg)
 }
 
-func start(router *httprouter.Router) {
+func start(router *httprouter.Router, cfg *config.Config) {
 	logger := logging.GetLogger()
-	logger.Info("starting application...")
-	listener, err := net.Listen("tcp", ":1234")
-	if err != nil {
-		panic(err)
+	logger.Info("-> starting application...")
+
+	var listener net.Listener
+	var ListenErr error
+
+	// sock === socket | "===" means the same
+	if cfg.Listen.Type == "sock" { 	
+		logger.Info("-> detecting application path...")
+		appDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+		if err != nil {
+			logger.Fatal(err)
+		}
+
+		logger.Info("-> creating socket...")
+		socketPath := path.Join(appDir, "app.sock")
+
+		logger.Debugf("CREATED SUCCESFULLY | socket path: %s", socketPath)
+
+		logger.Info("-> listening unix socket...")
+		listener, ListenErr = net.Listen("unix", socketPath)
+		logger.Infof("application is listening unix sockets... %s", socketPath)
+		
+	} else {
+		logger.Info("-> listening tcp...")
+		listener, ListenErr = net.Listen("tcp", fmt.Sprintf("%s:%s", cfg.Listen.BindIP, cfg.Listen.Port))
+		logger.Infof("application is running... on port %s:%s", cfg.Listen.BindIP, cfg.Listen.Port)
+	}
+
+	if ListenErr != nil {
+		logger.Fatal(ListenErr)
 	}
 
 	server := &http.Server {
@@ -36,6 +69,5 @@ func start(router *httprouter.Router) {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	logger.Info("application is running...")
 	logger.Fatal(server.Serve(listener))
 }
