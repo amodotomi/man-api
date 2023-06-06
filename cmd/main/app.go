@@ -20,7 +20,7 @@ func main() {
 	logger.Info("-> creating router...")
 	router := httprouter.New()
 
-	cfg := config.GetConfig() // cfg === config
+	cfg := config.GetConfig() // cfg === config | "===" means the same | 
 
 	logger.Info("-> registering user handler...")
 	handler := user.NewHandler(logger)
@@ -36,7 +36,7 @@ func start(router *httprouter.Router, cfg *config.Config) {
 	var listener net.Listener
 	var ListenErr error
 
-	// sock === socket | "===" means the same
+	// sock === socket 
 	if cfg.Listen.Type == "sock" { 	
 		logger.Info("-> detecting application path...")
 		appDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
