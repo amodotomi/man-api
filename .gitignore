@@ -1,0 +1,29 @@
+# Compiled Object files
+*.o
+*.a
+*.so
+
+# Compiled Go files
+*.exe
+*.test
+*.prof
+
+# Generated files
+/bin/
+/pkg/
+
+# Dependency directories (remove if you're not using a dependency manager)
+/vendor/
+/go.mod
+/go.sum
+
+# Build output
+/build/
+
+# IDE-specific files (remove if not using any IDE)
+.idea/
+.vscode/
+
+# System-specific files
+.DS_Store
+Thumbs.db
