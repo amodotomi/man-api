@@ -13,6 +13,15 @@ type Config struct {
 		BindIP string  `yaml: "bind_ip" env-default:"127.0.0.1"`
 		Port   string  `yaml: "port"    env-default:"8080"`
 	} `yaml: "listen"`
+	MongoDB struct {
+		Host 	   string  `json: "host"`
+		Port 	   string  `json: "port"`
+		Database   string  `json: "database"`
+		Auth_db    string  `json: "auth_db"`
+		Username   string  `json: "username"`
+		Password   string  `json: "password"`
+		Collection string  `json: "collection"`
+	} `json: "mongodb"`
 }
 
 var instance *Config
@@ -21,7 +30,7 @@ var once sync.Once
 func GetConfig() *Config {
 	once.Do(func() {
 		logger := logging.GetLogger()
-		logger.Info("reading application configuration...")
+		logger.Info("---> reading application configuration...")
 		instance = &Config{}
 		if err := cleanenv.ReadConfig("config.yml", instance); err != nil {
 			help, _ := cleanenv.GetDescription(instance, nil)

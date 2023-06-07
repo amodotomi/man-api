@@ -1,3 +1,0 @@
-// create a new file in this directory ->
-// with the name "all.log" ->
-// for saving logs.

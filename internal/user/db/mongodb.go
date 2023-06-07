@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"proj/internal/user"
 	"proj/pkg/logging"
@@ -42,9 +43,9 @@ func (d *db) FindOne(ctx context.Context, id string) (u user.User, err error) {
 	filter := bson.M{"_id": oid}
 
 	result := d.collection.FindOne(ctx, filter)
-	if result.Err() != nil {
-		// TODO: 404
-		return u, fmt.Errorf("FAILED: failed to find user by id: %s due to error: %v", id, err)
+	if errors.Is(result.Err(), mongo.ErrNoDocuments) {
+		// TODO: handle error 404
+		return u, fmt.Errorf("FAILED: NOT FOUND 404")
 	}
 
 	if err = result.Decode(&u); err != nil {
@@ -58,20 +59,69 @@ func (d *db) FindOne(ctx context.Context, id string) (u user.User, err error) {
 // -----------------------------------------------------------------------------------------------------
 
 func (d *db) Update(ctx context.Context, user user.User) error {
-	d.collection.UpdateOne()
-}
+	objectID, err := primitive.ObjectIDFromHex(user.ID)
+	if err != nil {
+		return fmt.Errorf("FAILED: failed to convert user ID to object ID | ID=%s", user.ID)
+	}
 
-// -----------------------------------------------------------------------------------------------------
+	filter := bson.M{"_id": objectID}
+
+	userBytes, err := bson.Marshal(user)
+	if err != nil {
+		return fmt.Errorf("FAILED: failed to marshal user due to: error: %v", err)
+	}
+
+	var updateUserObj bson.M
+	bson.Unmarshal(userBytes, &updateUserObj)
+	if err != nil {
+		return fmt.Errorf("FAILED: failed to unmarshal user due to: error: %v", err)
+	}
+
+	delete(updateUserObj, "_id")
+
+	update := bson.M{
+		"set": updateUserObj,
+	}
+
+	result, err := d.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("FAILED: failed to execute update query | error %v", err)
+	}
+
+	if result.MatchedCount == 0 {
+		// todo: err not found 404
+		return fmt.Errorf("FAILED: NOT FOUND 404")
+	}
+
+	d.logger.Tracef("OK: MATCHED %d documents and MODIFIED %d", result.MatchedCount, result.ModifiedCount)
+	
+	return nil
+}
 
 func (d *db) Delete(ctx context.Context, id string) error {
-	d.collection.DeleteOne()
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return fmt.Errorf("FAILED: failed to convert user ID to object ID | ID=%s", id)
+	}
+
+	filter := bson.M{"_id": objectID}
+
+	result, err := d.collection.DeleteOne(ctx, filter)
+	if err != nil {
+		return fmt.Errorf("FAILED: failed to delete | error: %s", err)
+	}
+	if result.DeletedCount == 0 {
+		// TODO 404
+		return fmt.Errorf("FAILED: NOT FOUND 404")
+	}	
+	d.logger.Tracef("SUCCESS: Deleted %d documents", result.DeletedCount)
+
+	return nil
 }
 
-// -----------------------------------------------------------------------------------------------------
-
-func NewStorage(collection string, logger *logging.Logger) user.Storage {
+func NewStorage(database *mongo.Database, collection string, logger *logging.Logger) user.Storage {
 	return &db{
 		collection: database.Collection(collection),
-		logger: logger,
+		logger: 	logger,
 	}
 }
