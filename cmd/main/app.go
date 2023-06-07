@@ -17,12 +17,12 @@ import (
 
 func main() {
 	logger := logging.GetLogger()
-	logger.Info("-> creating router...")
+	logger.Info("---> creating router...")
 	router := httprouter.New()
 
 	cfg := config.GetConfig() // cfg === config | "===" means the same | 
 
-	logger.Info("-> registering user handler...")
+	logger.Info("---> registering user handler...")
 	handler := user.NewHandler(logger)
 	handler.Register(router)
 
@@ -31,30 +31,30 @@ func main() {
 
 func start(router *httprouter.Router, cfg *config.Config) {
 	logger := logging.GetLogger()
-	logger.Info("-> starting application...")
+	logger.Info("---> starting application...")
 
 	var listener net.Listener
 	var ListenErr error
 
 	// sock === socket 
 	if cfg.Listen.Type == "sock" { 	
-		logger.Info("-> detecting application path...")
+		logger.Info("---> detecting application path...")
 		appDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 		if err != nil {
 			logger.Fatal(err)
 		}
 
-		logger.Info("-> creating socket...")
+		logger.Info("---> creating socket...")
 		socketPath := path.Join(appDir, "app.sock")
 
 		logger.Debugf("CREATED SUCCESFULLY | socket path: %s", socketPath)
 
-		logger.Info("-> listening unix socket...")
+		logger.Info("---> listening unix socket...")
 		listener, ListenErr = net.Listen("unix", socketPath)
 		logger.Infof("application is listening unix sockets... %s", socketPath)
 		
 	} else {
-		logger.Info("-> listening tcp...")
+		logger.Info("---> listening tcp...")
 		listener, ListenErr = net.Listen("tcp", fmt.Sprintf("%s:%s", cfg.Listen.BindIP, cfg.Listen.Port))
 		logger.Infof("application is running... on port %s:%s", cfg.Listen.BindIP, cfg.Listen.Port)
 	}
