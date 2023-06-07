@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	// "context"
 	"fmt"
 	"net"
 	"net/http"
@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"proj/internal/config"
 	"proj/internal/user"
-	"proj/internal/user/db"
-	"proj/pkg/client/mongodb"
+	// "proj/internal/user/db"
+	// "proj/pkg/client/mongodb"
 	"proj/pkg/logging"
 	"time"
 
@@ -24,32 +24,21 @@ func main() {
 	router := httprouter.New()
 
 	cfg := config.GetConfig() // cfg === config | "===" means the same | 
-	cfgMongo := cfg.MongoDB
 
-	mongoDBClient, err := mongodb.NewClient(
-		context.Background(), cfgMongo.Host, 
-		cfgMongo.Port, cfgMongo.Username, 
-		cfgMongo.Password, cfgMongo.Database, cfgMongo.Auth_db)
+	// cfgMongo := cfg.MongoDB
 
-	if err != nil {
-		panic(err)
-	}
+	// mongoDBClient, err := mongodb.NewClient(
+	// 	context.Background(), cfgMongo.Host, 
+	// 	cfgMongo.Port, cfgMongo.Username, 
+	// 	cfgMongo.Password, cfgMongo.Database, cfgMongo.Auth_db)
 
-	storage := db.NewStorage(mongoDBClient, cfg.MongoDB.Collection, logger)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	user1 := user.User{
-		ID: 		  "",
-		Email: 		  "man@gmail.com",
-		Username: 	  "man",
-		PasswordHash: "12345",
-	}
+	// storage := db.NewStorage(mongoDBClient, cfg.MongoDB.Collection, logger)
 
-	user1ID, err := storage.Create(context.Background(), user1)
-	if err != nil {
-		panic(err)
-	}
-
-	logger.Info(user1ID)
+	
 	
 	logger.Info("---> registering user handler...")
 	handler := user.NewHandler(logger)

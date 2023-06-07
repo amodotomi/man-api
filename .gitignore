@@ -28,4 +28,4 @@
 .DS_Store
 Thumbs.db
 
-.all.log
+/all.log

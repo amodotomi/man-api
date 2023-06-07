@@ -33,19 +33,40 @@ func (d *db) Create(ctx context.Context, user user.User) (string, error) {
 	return "", fmt.Errorf("FAILED: failed to convert object ID to hex | probably oid: %s", result)
 }
 
+func (d *db) FindAll(ctx context.Context) (u []user.User, err error) {
+	cursor, err := d.collection.Find(ctx, bson.M{})
+	
+	if cursor.Err() != nil {
+		return u, fmt.Errorf("FAILED: failed to find all users due to error: %v", err)
+	}
+
+	if err = cursor.All(ctx, &u); err != nil {
+		return u, fmt.Errorf("FAILED: failed to read all documents form cursor | error %v", err)
+	}
+
+
+	return u, nil
+
+}
 
 func (d *db) FindOne(ctx context.Context, id string) (u user.User, err error) {
 	oid, err := primitive.ObjectIDFromHex(id) // oid === objectID
 	if err != nil {
-		return u, fmt.Errorf("failed to convert hex tp objectID | hex: %s", id)
+		return u, fmt.Errorf("failed to convert hex to objectID | hex: %s", id)
 	}
 
 	filter := bson.M{"_id": oid}
 
 	result := d.collection.FindOne(ctx, filter)
-	if errors.Is(result.Err(), mongo.ErrNoDocuments) {
-		// TODO: handle error 404
-		return u, fmt.Errorf("FAILED: NOT FOUND 404")
+
+	if result.Err() != nil {
+		// TODO: handle error
+		if errors.Is(result.Err(), mongo.ErrNoDocuments) {
+			// TODO: handle error 404
+			return u, fmt.Errorf("FAILED: NOT FOUND 404")
+		}
+
+		return u, fmt.Errorf("FAILED: failed to find one user by id: #{id} due ro error: %v", err)
 	}
 
 	if err = result.Decode(&u); err != nil {
@@ -55,8 +76,6 @@ func (d *db) FindOne(ctx context.Context, id string) (u user.User, err error) {
 	return u, nil
 
 }
-
-// -----------------------------------------------------------------------------------------------------
 
 func (d *db) Update(ctx context.Context, user user.User) error {
 	objectID, err := primitive.ObjectIDFromHex(user.ID)
