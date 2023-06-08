@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "context"
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"proj/internal/config"
 	"proj/internal/user"
-	// "proj/internal/user/db"
-	// "proj/pkg/client/mongodb"
+	"proj/internal/user/db"
+	"proj/pkg/client/mongodb"
 	"proj/pkg/logging"
 	"time"
 
@@ -24,19 +24,19 @@ func main() {
 	router := httprouter.New()
 
 	cfg := config.GetConfig() // cfg === config | "===" means the same | 
+	
+	cfgMongo := cfg.MongoDB
 
-	// cfgMongo := cfg.MongoDB
+	mongoDBClient, err := mongodb.NewClient(
+		context.Background(), cfgMongo.Host, 
+		cfgMongo.Port, cfgMongo.Username, 
+		cfgMongo.Password, cfgMongo.Database, cfgMongo.Auth_db)
 
-	// mongoDBClient, err := mongodb.NewClient(
-	// 	context.Background(), cfgMongo.Host, 
-	// 	cfgMongo.Port, cfgMongo.Username, 
-	// 	cfgMongo.Password, cfgMongo.Database, cfgMongo.Auth_db)
+	if err != nil {
+		panic(err)
+	}
 
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// storage := db.NewStorage(mongoDBClient, cfg.MongoDB.Collection, logger)
+	storage := db.NewStorage(mongoDBClient, cfg.MongoDB.Collection, logger) // TODO
 
 	
 	

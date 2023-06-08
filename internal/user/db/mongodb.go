@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	apperror "proj/internal/app-error"
 	"proj/internal/user"
 	"proj/pkg/logging"
 
@@ -60,10 +61,8 @@ func (d *db) FindOne(ctx context.Context, id string) (u user.User, err error) {
 	result := d.collection.FindOne(ctx, filter)
 
 	if result.Err() != nil {
-		// TODO: handle error
 		if errors.Is(result.Err(), mongo.ErrNoDocuments) {
-			// TODO: handle error 404
-			return u, fmt.Errorf("FAILED: NOT FOUND 404")
+			return u, apperror.ErrNotFound
 		}
 
 		return u, fmt.Errorf("FAILED: failed to find one user by id: #{id} due ro error: %v", err)
@@ -108,8 +107,7 @@ func (d *db) Update(ctx context.Context, user user.User) error {
 	}
 
 	if result.MatchedCount == 0 {
-		// todo: err not found 404
-		return fmt.Errorf("FAILED: NOT FOUND 404")
+		return apperror.ErrNotFound
 	}
 
 	d.logger.Tracef("OK: MATCHED %d documents and MODIFIED %d", result.MatchedCount, result.ModifiedCount)
