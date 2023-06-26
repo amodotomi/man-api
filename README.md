@@ -1,6 +1,8 @@
 # man-api
-man-api is an CRUD REST API made with Go
-You can use whatever you wanna. It's very flexible CRUD REST API. 
+
+- man-api is a CRUD REST API made with Go
+- can be used whatever you want
+- very flexible CRUD REST API
 
 ## Installation
 
