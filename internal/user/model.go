@@ -1,5 +1,5 @@
 package user
-
+// TODO | COMPLETELY CHANGE MODEL FOR WORKING WITH METHEOROLOGY DATA
 type User struct {
 	ID 				string 	`json:"id" bson:"_id,omitempty"`
 	Username 		string	`json:"username" bson:"username"`

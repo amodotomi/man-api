@@ -1,5 +1,5 @@
 package user
-
+// TODO | COMPLETELY CHANGE MODEL FOR WORKING WITH METHEOROLOGY DATA 
 import (
 	"fmt"
 	"net/http"

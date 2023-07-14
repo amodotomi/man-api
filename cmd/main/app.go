@@ -8,14 +8,14 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"time"
+
+	"github.com/julienschmidt/httprouter"
 	"proj/internal/config"
 	"proj/internal/user"
 	"proj/internal/user/db"
 	"proj/pkg/client/mongodb"
 	"proj/pkg/logging"
-	"time"
-
-	"github.com/julienschmidt/httprouter"
 )
 
 func main() {
@@ -23,23 +23,20 @@ func main() {
 	logger.Info("---> creating router...")
 	router := httprouter.New()
 
-	cfg := config.GetConfig() // cfg === config | "===" means the same | 
-	
+	cfg := config.GetConfig() // cfg === config | "===" means the same |
+
 	cfgMongo := cfg.MongoDB
 
 	mongoDBClient, err := mongodb.NewClient(
-		context.Background(), cfgMongo.Host, 
-		cfgMongo.Port, cfgMongo.Username, 
+		context.Background(), cfgMongo.Host,
+		cfgMongo.Port, cfgMongo.Username,
 		cfgMongo.Password, cfgMongo.Database, cfgMongo.Auth_db)
-
 	if err != nil {
 		panic(err)
 	}
 
 	storage := db.NewStorage(mongoDBClient, cfg.MongoDB.Collection, logger) // TODO
 
-	
-	
 	logger.Info("---> registering user handler...")
 	handler := user.NewHandler(logger)
 	handler.Register(router)
@@ -54,8 +51,8 @@ func start(router *httprouter.Router, cfg *config.Config) {
 	var listener net.Listener
 	var ListenErr error
 
-	// sock === socket 
-	if cfg.Listen.Type == "sock" { 	
+	// sock === socket
+	if cfg.Listen.Type == "sock" {
 		logger.Info("---> detecting application path...")
 		appDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 		if err != nil {
@@ -70,7 +67,7 @@ func start(router *httprouter.Router, cfg *config.Config) {
 		logger.Info("---> listening unix socket...")
 		listener, ListenErr = net.Listen("unix", socketPath)
 		logger.Infof("application is listening unix sockets... %s", socketPath)
-		
+
 	} else {
 		logger.Info("---> listening tcp...")
 		listener, ListenErr = net.Listen("tcp", fmt.Sprintf("%s:%s", cfg.Listen.BindIP, cfg.Listen.Port))
@@ -81,8 +78,8 @@ func start(router *httprouter.Router, cfg *config.Config) {
 		logger.Fatal(ListenErr)
 	}
 
-	server := &http.Server {
-		Handler: router,
+	server := &http.Server{
+		Handler:      router,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}

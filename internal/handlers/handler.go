@@ -5,5 +5,5 @@ import (
 )
 
 type Handler interface {
-	Register(router *httprouter.Router) 
+	Register(router *httprouter.Router)
 }
